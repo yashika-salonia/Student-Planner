@@ -1,0 +1,149 @@
+# 🎓 Student Productivity Planner
+
+A full-stack web application for students to manage tasks with **2-Factor Authentication (2FA)** using email OTP verification.
+
+![Project Banner](https://via.placeholder.com/800x200/0ea5e9/ffffff?text=Student+Planner)
+
+## ✨ Features
+
+- 🔐 **Email-based 2FA** - Secure login with OTP verification
+- ✅ **Task Management** - Create, update, delete tasks
+- 📊 **Dashboard** - Track pending and completed tasks
+- 🌓 **Dark Mode** - Eye-friendly interface
+- 📱 **Responsive Design** - Works on all devices
+- 🔒 **JWT Authentication** - Secure API access
+
+## 🛠️ Tech Stack
+
+**Frontend:**
+- React 18
+- Tailwind CSS
+- React Router
+- Axios
+- GSAP (animations)
+
+**Backend:**
+- Django 6.0
+- Django REST Framework
+- JWT Authentication
+- SQLite Database
+- Email Integration (Gmail SMTP)
+
+## 📦 Installation
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- Git
+
+### Backend Setup
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/student-planner.git
+cd student-planner/backend
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create .env file
+cp .env.example .env
+# Edit .env and add your email credentials
+
+# Run migrations
+python manage.py migrate
+
+# Start server
+python manage.py runserver
+```
+
+### Frontend Setup
+```bash
+# In new terminal
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+## 🔑 Environment Variables
+
+Create `backend/.env` file:
+```bash
+SECRET_KEY=your-django-secret-key
+DEBUG=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-gmail-app-password
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+**Get Gmail App Password:**
+1. Enable 2-Step Verification in Google Account
+2. Go to Security → App Passwords
+3. Generate password for "Mail"
+4. Copy 16-character password
+
+## 🚀 Usage
+
+1. **Register:** Create account with email
+2. **Verify Email:** Click link in email
+3. **Login:** Enter username + password
+4. **OTP:** Check email for 6-digit code
+5. **Dashboard:** Manage your tasks
+
+## 📸 Screenshots
+
+![Login Page](https://via.placeholder.com/600x400?text=Login+Page)
+![Dashboard](https://via.placeholder.com/600x400?text=Dashboard)
+![Dark Mode](https://via.placeholder.com/600x400?text=Dark+Mode)
+
+## 🔐 Security Features
+
+- Two-Factor Authentication (2FA)
+- Email verification before login
+- JWT token-based authentication
+- Time-limited OTP (5 minutes)
+- Password hashing
+- CORS protection
+
+## 📝 API Endpoints
+```
+POST   /api/auth/register/           - Register new user
+GET    /api/auth/verify-email/:token - Verify email
+POST   /api/auth/login/step1/        - Send OTP
+POST   /api/auth/login/step2/        - Verify OTP & login
+GET    /api/tasks/                   - Get all tasks
+POST   /api/tasks/                   - Create task
+PATCH  /api/tasks/:id/               - Update task
+DELETE /api/tasks/:id/               - Delete task
+```
+
+## 🤝 Contributing
+
+Contributions welcome! Please open an issue first.
+
+## 📄 License
+
+MIT License - feel free to use for learning!
+
+## 👨‍💻 Author
+
+**Your Name**
+- GitHub: [@yourusername](https://github.com/yourusername)
+- LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
+
+## 🙏 Acknowledgments
+
+- Built as a learning project
+- Inspired by modern productivity tools
+- Thanks to open-source community
+
+---
+
+⭐ Star this repo if you found it helpful!
