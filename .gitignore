@@ -2,7 +2,7 @@
 .env
 .env.*
 frontend/.env*
-backend/.env*
+backend/.env
 
 # NODE / FRONTEND
 node_modules/
