@@ -2,20 +2,30 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import UserProfile
+import logging
+
+logger=logging.getLogger(__name__)
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwags):
     """
-    Automatically create UserProfile when User is created
+    Signal to automatically create UserProfile when User is created
     """
     if created:
-        UserProfile.objects.create(user=instance)
-        print(f"Profile created for {instance.username}")
+        if not hasattr(instance, 'profile'):
+            try:
+                UserProfile.objects.create(user=instance)
+                logger.info(f"Profile created for {instance.username}")
+            except Exception as e:
+                logger.error(f"Error creating profile for {instance.username}: {e}")
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     """
-    Save UserProfile when user is created
+    Signal to save UserProfile when user is saved
     """
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
+    try:
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
+    except Exception as e:
+        logger.error(f"Error saving profile for {instance.username}: {e}")

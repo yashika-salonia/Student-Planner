@@ -1,10 +1,14 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import RegisterView, LoginStep1View, LoginStep2View
+from rest_framework_simplejwt.views import TokenRefreshView
+from .views import RegisterView, LoginStep1View, LoginStep2View, VerifyEmailView, ResendVerificationView
 
 urlpatterns = [
     # Registeration
     path('register/', RegisterView.as_view(), name='register'),
+
+    # verification of email
+    path('verify-email/<uuid:token>/',VerifyEmailView.as_view(), name='verify-email'),
+    path('resend-verification/', ResendVerificationView.as_view(), name='resend-verification'),
 
     # Two-step login
     path('login-step1/', LoginStep1View.as_view(),name='login-step1'),

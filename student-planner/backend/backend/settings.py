@@ -114,8 +114,18 @@ AUTH_PASSWORD_VALIDATORS = [
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),    
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),  
+    'ROTATE_REFRESH_TOKENS':False,
+    'UPDATE_LAST_LOGIN':True,
+    'ALGORITHM':'HS256',
+    'AUTH_HEADER_TYPES':('Bearer',),  
 }
+
+# OTP setting
+OP_EXPIRY_MINUTES=5
+
+# Verification link expiry
+EMAIL_VERIFICATION_EXPIRY_HOURS=24
 
 
 # Internationalization

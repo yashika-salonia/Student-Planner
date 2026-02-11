@@ -1,28 +1,26 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", 
-    "./src/**/*.{js,ts,jsx,tsx}"
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   darkMode: "class",
   theme: {
     extend: {
       colors: {
         primary: {
           50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          800: "#075985",
-          900: "#0c4a6e",
+          100: "#fae0fe",
+          200: "#eabafd",
+          300: "#e77dfc",
+          400: "#bb38f8",
+          500: "#7f0ee9",
+          600: "#7802c7",
+          700: "#7403a1",
+          800: "#570785",
+          900: "#4a0c6e",
         },
         accent: {
-          light: "#a78bfa",
-          DEFAULT: "#8b5cf6",
-          dark: "#7c3aed",
+          light: "#fa8bf1",
+          DEFAULT: "#f65ce2",
+          dark: "#ed3ad5",
         },
       },
       animation: {

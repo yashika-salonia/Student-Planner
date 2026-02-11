@@ -1,9 +1,12 @@
-import React, { useState, useContext } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
+import { useActionState } from "react";
+import axios from "axios";
 
 const Login = () => {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState(1);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -13,13 +16,38 @@ const Login = () => {
   const [otpMessage, setOtpMessage] = useState("");
 
   const [userEmail, setUserEmail] = useState("");
+  const [verificationSuccess, setVerificationSuccess] = useState();
+
+  const [showResend, setShowResend] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [userEmailForResend, setUserEmailForResend] = useState("");
 
   const { loginStep1, loginStep2 } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const verified = searchParams.get("verified");
+    const usernameParam = searchParams.get("username");
+
+    if (verified === "true") {
+      setVeificationSuccess("Email verified succesfully! You can now login");
+      if (usernameParam) {
+        setUsername(usernameParam);
+      }
+    } else if (verified === "already") {
+      setVerificationSuccess("Email already verified. Please login");
+    } else if (verified === "false") {
+      setError(
+        "Invalid verification link. Please try again or conatct support.",
+      );
+    }
+  }, [searchParams]);
+
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setVerificationSuccess("");
+    setShowResend(false);
     setLoading(true);
 
     try {
@@ -28,15 +56,54 @@ const Login = () => {
       setUserEmail(result.email);
       setStep(2);
     } catch (err) {
-      if (err.response?.data?.error) {
+      console.error("Login step 1 error:", err);
+
+      // handle verification required error
+      if (
+        err.response?.status === 403 &&
+        err.response?.data?.verification_required
+      ) {
+        const email = err.response.data.email;
+        setUserEmailForResend(email);
+        setShowResend(true);
+
+        setError(
+          `Email Not Verified\n\n` +
+            `Please check your email (${err.response.data.email}) and click the verification link.\n\n` +
+            `Didn't receive the email? Check your spam folder or contact support.`,
+        );
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.response?.data?.error) {
         setError(err.response.data.error);
-      } else if (err.response?.data?.email) {
-        setError(`Email error: ${err.response.data.email}`);
       } else {
         setError("Login failed. Please check your credentials");
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResending(true);
+    setError("");
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/auth/resend-verification/",
+        {
+          email: userEmailForResend,
+        },
+      );
+
+      setVerificationSuccess(`${response.data.message}`);
+      setShowResend(false);
+    } catch (err) {
+      setError(
+        err.response?.data?.error || "Failed to resend verification email.",
+      );
+    } finally {
+      setResending(false);
     }
   };
 
@@ -70,7 +137,7 @@ const Login = () => {
     }
   };
 
-  return(
+  return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
       <div className="absolute top-4 right-4 animate-fade-in">
         <ThemeToggle />
@@ -104,27 +171,66 @@ const Login = () => {
             </p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r animate-slide-down">
+          {/* Verification Success Message */}
+          {verificationSuccess && (
+            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r animate-slide-down">
               <div className="flex items-start">
                 <svg
-                  className="w-5 h-5 text-red-500 mt-0.5 mr-3"
+                  className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
                   <path
                     fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
                 </svg>
-                <p className="text-red-700 dark:text-red-400 text-sm">
-                  {error}
+                <p className="text-green-700 dark:text-green-400 text-sm font-medium">
+                  {verificationSuccess}
                 </p>
               </div>
             </div>
           )}
 
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6">
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r animate-slide-down">
+                <div className="flex items-start">
+                  <svg
+                    className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-red-700 dark:text-red-400 text-sm font-medium whitespace-pre-line">
+                      {error}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resend Verification Button */}
+              {showResend && (
+                <button
+                  onClick={handleResendVerification}
+                  disabled={resending}
+                  className="mt-3 w-full py-2 px-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all disabled:opacity-50"
+                >
+                  {resending ? "Sending..." : "Resend Verification Email"}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* OTP Sent Message */}
           {otpMessage && step === 2 && (
             <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r animate-slide-down">
               <div className="flex items-start">
@@ -142,7 +248,7 @@ const Login = () => {
                   </p>
                   {userEmail && (
                     <p className="text-green-600 dark:text-green-500 text-xs mt-1">
-                      Email: {userEmail}
+                      📧 {userEmail}
                     </p>
                   )}
                 </div>
@@ -316,7 +422,7 @@ const Login = () => {
               />
             </svg>
             <span className="text-sm text-gray-700 dark:text-gray-300">
-              Secured with Email 2FA
+              Secured with Email Verification + 2FA
             </span>
           </div>
         </div>

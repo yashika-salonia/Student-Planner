@@ -1,32 +1,29 @@
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from datetime import *
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-
+from django.shortcuts import redirect
+import threading
 
 from .serializers import UserSerializer, OTPVerifySerailizer
 from .models import UserProfile
-from .utils import generate_otp, send_otp_email, is_otp_valid
+from .utils import generate_otp, send_otp_email,send_verification_email , is_otp_valid
 
-# Create your views here.
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(generics.CreateAPIView):
     
-    """POST /api/register/
-      Register a new user"""
+    """POST /api/register/ -> Register a new user"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-# email validation
+    # email validation
     def create(self, request, *args, **kwargs):
         email=request.data.get('email')
         if email:
@@ -37,26 +34,111 @@ class RegisterView(generics.CreateAPIView):
                     {'error':'Invalid email format'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        return super().create(request, *args, **kwargs)
+            
+        # create user
+        response= super().create(request, *args, **kwargs)
     
+        # get created user
+        user=User.objects.get(username=request.data.get('username'))
+        profile=user.profile
+
+        # send mail for verification
+        def send_email_async():
+            send_verification_email(
+                user.email,
+                user.username,
+                profile.verification_token
+            )
+
+        thread=threading.Thread(target=send_email_async)
+        thread.daemon=True
+        thread.start()
+
+        return Response(
+            {
+                'success':True,
+                'message':'Registeration successful! Please check your mail to verify your account',
+                'email':user.email,
+                'user':response.data
+            },
+            status =status.HTTP_201_CREATED
+        )
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class VerifyEmailView(APIView):
+    """Verify email via link """
+
+    def get(self, request, token):
+        try:
+            profile=UserProfile.objects.get(verification_token=token)
+
+            # check if already verified
+            if profile.email_verified:
+                return redirect(f'http://localhost:5173/login?verified=already')
+            
+            profile.email_verified=True
+            profile.save()
+
+            print(f"Email verified for user: {profile.user.username}")
+
+            return redirect(f'http://localhost:5173/login?verified=true&username={profile.user.username}')
+        
+        except UserProfile.DoesNotExist:
+            return redirect('http://localhost:5173/login?verified=false')
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ResendVerificationView(APIView):
+    """REsend verification email"""
+
+    def post(self, request):
+        email=request.data.get('email')
+
+        if not email:
+            return Response(
+                {'error':'Email required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            user=User.objects.get(email=email)
+            profile=user.profile
+
+            # check if already verified
+            if profile.email_verified:
+                return Response(
+                    {'message':'Email already verified. Yoou can login now.'},
+                    status=status.HTTP_200_OK
+                )
+            
+            # send mail again
+            def send_email_async():
+                send_verification_email(
+                    user.email,
+                    user.username,
+                    profile.verification_token
+                )
+            
+            thread=threading.Thread(target=send_email_async)
+            thread.daemon = True
+            thread.start()
+
+            return Response(
+                {
+                    'success': True,
+                    'message':f'Verification email sent to {email}. Please check your inbox.'
+                },
+                status=status.HTTP_200_OK
+            )
+        except User.DoesNotExist:
+            return Response(
+                {'error':'No account found with this email'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginStep1View(APIView):
     """
-    Docstring for LoginStep1View
-    POST /api/login-step1/
-    Step 1:Verify username/password and send OTP
-
-    Request body:{
-        "username":"string",
-        "password":"password123"
-    }
-
-    Response:{
-        "status": "otp_sent",
-        "message": "OTP has been sent to your registered email.",
-        "username":"testuser"
-    }
+    Step 1:Verify username/password, email verified and send OTP
     """
 
     def post(self,request):
@@ -77,13 +159,18 @@ class LoginStep1View(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
         
-        if not user.email:
+        profile=user.profile
+
+        if not profile.email_verified:
             return Response(
-                {'error':'User does not have an email. Contact support.'},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    'error':'Email not verified',
+                    'message':f'Please check {user.email} and click the verification link to verify your account to continue.',
+                    'email':user.email,
+                    'verification_required':True
+                },
+                status=status.HTTP_403_FORBIDDEN
             )
-        # get or create user profile
-        profile, created=UserProfile.objects.get_or_create(user=user)
 
         # generate OTP
         otp_code=generate_otp()
@@ -95,48 +182,27 @@ class LoginStep1View(APIView):
         profile.save()
 
         # send OTP to user's email
-        email_sent=send_otp_email(user.email, otp_code)
+        def send_otp_async():
+            send_otp_email(user.email, otp_code)
 
-        if not email_sent:
-            profile.otp_code=None
-            profile.otp_created_at=None
-            profile.save()
-
-            return Response(
-                {
-                    'error': 'Failed to send OTP. Please check your email address and try again',
-                    'email':user.email
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ),
+        # if not email_sent:
+        #     profile.otp_code=None
+        #     profile.otp_created_at=None
+        #     profile.save()
+        thread=threading.Thread(target=send_otp_async)
+        thread.daemon=True
+        thread.start()
         
         return Response({
             'status':'otp_sent',
             'message':f'OTP sent to {user.email}',
             'username':username,
             'email':user.email
-        })
+        }, status=status.HTTP_200_OK)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginStep2View(APIView):
-        """
-        POST /api/auth/login/step2
-        Step 2: Verify OTP and issue JWT tokens
-
-        Request body:
-        {
-            "username":"testuser",
-            "otp":"123456"
-        }
-
-        Response:
-        {
-            "access":"jwt_access_token",
-            "refresh":"jwt_refresh_token",
-            "username":"testuser",
-            "email":"user@example.com"
-        }
-        """
+        """Step 2: Verify OTP and issue JWT tokens"""
 
         def post(self, request):
             serializer = OTPVerifySerailizer(data=request.data)
@@ -181,7 +247,7 @@ class LoginStep2View(APIView):
                 )
             
             # Verify Otp matches
-            if profile.otp_code!=otp:
+            if profile.otp_code != otp:
                 return Response(
                     {'error':'Invalid OTP'},
                     status=status.HTTP_400_BAD_REQUEST
