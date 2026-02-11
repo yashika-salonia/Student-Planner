@@ -2,7 +2,7 @@
 
 A full-stack web application for students to manage tasks with **2-Factor Authentication (2FA)** using email OTP verification.
 
-![Project Banner](images\dashboard.png)
+![Project Banner](images/dashboard.png)
 
 ## ✨ Features
 
@@ -106,10 +106,10 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 
 ## 📸 Screenshots
 
-![Login Page](images\login.png)
-![Register Page](images\register.png)
-![Dashboard](images\dashboard-1.png)
-![Dashboard](images\dashboard-2.png)
+![Login Page](images/login.png)
+![Register Page](images/register.png)
+![Dashboard](images/dashboard-1.png)
+![Dashboard](images/dashboard-2.png)
 
 ## 🔐 Security Features
 
