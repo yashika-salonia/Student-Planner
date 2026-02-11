@@ -30,7 +30,7 @@ const Login = () => {
     const usernameParam = searchParams.get("username");
 
     if (verified === "true") {
-      setVeificationSuccess("Email verified succesfully! You can now login");
+      setVerificationSuccess("Email verified succesfully! You can now login");
       if (usernameParam) {
         setUsername(usernameParam);
       }

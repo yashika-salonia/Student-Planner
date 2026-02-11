@@ -2,7 +2,7 @@
 
 A full-stack web application for students to manage tasks with **2-Factor Authentication (2FA)** using email OTP verification.
 
-![Project Banner](https://via.placeholder.com/800x200/0ea5e9/ffffff?text=Student+Planner)
+![Project Banner] (images\dashboard.png)
 
 ## ✨ Features
 
@@ -16,6 +16,7 @@ A full-stack web application for students to manage tasks with **2-Factor Authen
 ## 🛠️ Tech Stack
 
 **Frontend:**
+
 - React 18
 - Tailwind CSS
 - React Router
@@ -23,6 +24,7 @@ A full-stack web application for students to manage tasks with **2-Factor Authen
 - GSAP (animations)
 
 **Backend:**
+
 - Django 6.0
 - Django REST Framework
 - JWT Authentication
@@ -32,19 +34,21 @@ A full-stack web application for students to manage tasks with **2-Factor Authen
 ## 📦 Installation
 
 ### Prerequisites
+
 - Python 3.10+
 - Node.js 18+
 - Git
 
 ### Backend Setup
+
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/student-planner.git
+git clone https://github.com/yashika-salonia/Student-Planner.git
 cd student-planner/backend
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate  # On Mac/iOS: source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -61,6 +65,7 @@ python manage.py runserver
 ```
 
 ### Frontend Setup
+
 ```bash
 # In new terminal
 cd frontend
@@ -75,6 +80,7 @@ npm run dev
 ## 🔑 Environment Variables
 
 Create `backend/.env` file:
+
 ```bash
 SECRET_KEY=your-django-secret-key
 DEBUG=True
@@ -84,10 +90,11 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 ```
 
 **Get Gmail App Password:**
-1. Enable 2-Step Verification in Google Account
+
+1. Enable 2-Step Verification in your Google Account
 2. Go to Security → App Passwords
 3. Generate password for "Mail"
-4. Copy 16-character password
+4. Copy 16-character password (visible only once)
 
 ## 🚀 Usage
 
@@ -99,9 +106,10 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 
 ## 📸 Screenshots
 
-![Login Page](https://via.placeholder.com/600x400?text=Login+Page)
-![Dashboard](https://via.placeholder.com/600x400?text=Dashboard)
-![Dark Mode](https://via.placeholder.com/600x400?text=Dark+Mode)
+![Login Page] (images\login.png)
+![Register Page](images\register.png)
+![Dashboard](images\dashboard-1.png)
+![Dashboard](images\dashboard-2.png)
 
 ## 🔐 Security Features
 
@@ -113,11 +121,12 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 - CORS protection
 
 ## 📝 API Endpoints
+
 ```
 POST   /api/auth/register/           - Register new user
 GET    /api/auth/verify-email/:token - Verify email
-POST   /api/auth/login/step1/        - Send OTP
-POST   /api/auth/login/step2/        - Verify OTP & login
+POST   /api/auth/login-step1/        - Send OTP
+POST   /api/auth/login-step2/        - Verify OTP & login
 GET    /api/tasks/                   - Get all tasks
 POST   /api/tasks/                   - Create task
 PATCH  /api/tasks/:id/               - Update task
@@ -128,15 +137,12 @@ DELETE /api/tasks/:id/               - Delete task
 
 Contributions welcome! Please open an issue first.
 
-## 📄 License
-
-MIT License - feel free to use for learning!
-
 ## 👨‍💻 Author
 
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
+**Yashika Salonia**
+
+- GitHub: [@yashika-salonia](https://github.com/yashika-salonia)
+- LinkedIn: [Yashika Salonia](https://www.linkedin.com/in/yashikasalonia/)
 
 ## 🙏 Acknowledgments
 
